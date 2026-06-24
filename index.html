@@ -1105,7 +1105,7 @@
   <div class="relative max-w-7xl mx-auto px-5 sm:px-8 pt-7 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
     <p class="text-white/40 text-[13px]">&copy; <span id="year"></span> Reiher Service. Alle Rechte vorbehalten.</p>
     <p class="text-white/40 text-[13px]">Reutlingen &middot; Metzingen &middot; Stuttgart &middot; bundesweit</p>
-    <button onclick="openAdmin()" class="text-white/10 hover:text-white/30 text-[11px] transition-colors" title="Admin">&#9679;</button>
+    <button onclick="openAdmin()" class="text-white/20 hover:text-white/50 text-[13px] transition-colors px-2 py-1" title="Admin-Bereich">&#9679;</button>
   </div>
 </footer>
 
@@ -1475,7 +1475,7 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="space-y-4">
         <div>
           <label class="block text-[12px] text-white/50 mb-1.5">E-Mail</label>
-          <input id="adm-email" type="email" class="adm-input" placeholder="admin@reiherservice.de">
+          <input id="adm-email" type="email" class="adm-input" placeholder="admin@reiherservice.de" value="admin@reiherservice.de">
         </div>
         <div>
           <label class="block text-[12px] text-white/50 mb-1.5">Passwort</label>
@@ -1808,20 +1808,19 @@ function rsToast(msg, isError) {
 // ════════════════════════════════════════════════
 //  Admin: open / close / auth
 // ════════════════════════════════════════════════
-const ADMIN_CREDS = { email: 'admin@reiherservice.de', pw: btoa('ReiherAdmin2025') };
-
 function openAdmin() {
   const ov = document.getElementById('admin-overlay');
+  if (!ov) return;
   ov.classList.add('is-open');
   document.body.style.overflow = 'hidden';
-  // check already logged in
   if (localStorage.getItem('rs_adm_session') === 'true') {
     document.getElementById('adm-login-screen').classList.add('hidden');
     document.getElementById('adm-dashboard').classList.remove('hidden');
     admRefreshAll();
+  } else {
+    document.getElementById('adm-login-screen').classList.remove('hidden');
+    document.getElementById('adm-dashboard').classList.add('hidden');
   }
-  // pre-fill if hash
-  if (location.hash === '#admin') { /* opened programmatically */ }
 }
 function closeAdmin() {
   document.getElementById('admin-overlay').classList.remove('is-open');
@@ -1834,10 +1833,12 @@ function admLogout() {
   closeAdmin();
 }
 function admLogin() {
-  const email = document.getElementById('adm-email').value.trim();
+  const email = document.getElementById('adm-email').value.trim().toLowerCase();
   const pw    = document.getElementById('adm-pw').value;
   const err   = document.getElementById('adm-login-err');
-  if (email === atob('YWRtaW5AcmVpaGVyc2VydmljZS5kZQ==') && btoa(pw) === ADMIN_CREDS.pw) {
+  const okEmail = email === 'admin@reiherservice.de';
+  const okPw    = pw === 'ReiherAdmin2025';
+  if (okEmail && okPw) {
     err.classList.add('hidden');
     localStorage.setItem('rs_adm_session','true');
     document.getElementById('adm-login-screen').classList.add('hidden');
@@ -2092,10 +2093,14 @@ function admLiveClock() {
   setInterval(tick, 1000);
 }
 
-// ── Open admin via URL hash ────────────────────
-if (location.hash === '#admin') {
-  window.addEventListener('DOMContentLoaded', openAdmin);
-}
+// ── Open admin via URL hash or footer dot ──────
+document.addEventListener('DOMContentLoaded', function() {
+  if (location.hash === '#admin') openAdmin();
+});
+window.addEventListener('hashchange', function() {
+  if (location.hash === '#admin') openAdmin();
+  if (location.hash !== '#admin') closeAdmin();
+});
 
 // ── Helpers ────────────────────────────────────
 function esc(s) {
@@ -2109,6 +2114,10 @@ function statusLabel(s) {
 }
 
 // ── Init ────────────────────────────────────────
+// Web3Forms key pre-configured
+if (!localStorage.getItem('rs_w3f_key')) {
+  localStorage.setItem('rs_w3f_key', '224875cd-1ecb-42f3-a55f-bc01e34e99a1');
+}
 document.addEventListener('DOMContentLoaded', ejsInit);
 
 </script>
